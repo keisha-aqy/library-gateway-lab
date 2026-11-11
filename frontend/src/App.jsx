@@ -415,10 +415,12 @@ export default function App() {
           ))}
         </nav>
 
-        {tab === 'catalog' && <Catalog notify={notify} />}
-        {tab === 'loans' && <MyLoans notify={notify} />}
-        {tab === 'manage' && <Manage notify={notify} />}
-        {tab === 'admin' && <Admin notify={notify} />}
+        <section className="page-content" key={tab}>
+          {tab === 'catalog' && <Catalog notify={notify} />}
+          {tab === 'loans' && <MyLoans notify={notify} />}
+          {tab === 'manage' && <Manage notify={notify} />}
+          {tab === 'admin' && <Admin notify={notify} />}
+        </section>
       </main>
 
       {toast && (
