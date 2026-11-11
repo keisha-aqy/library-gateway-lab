@@ -1,0 +1,14 @@
+deployment:
+  role: traditional
+  role_traditional:
+    config_provider: etcd
+  admin:
+    allow_admin:
+      - 0.0.0.0/0 #izinkan Admin API dari mana saja (hanya untuk lab)
+    admin_key:
+      - name: admin
+        key: ${{APISIX_ADMIN_KEY}}
+        role: admin
+  etcd:
+    host:
+      - "http://etcd:2379"

@@ -1,0 +1,78 @@
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.14
+    command: >
+      etcd --name etcd --data-dir /etcd-data
+      --listen-client-urls http://0.0.0.0:2379
+      --advertise-client-urls http://etcd:2379
+    volumes:
+      - etcddata:/etcd-data
+
+  apisix:
+    image: apache/apisix:3.11.0-debian
+    environment:
+      APISIX_ADMIN_KEY: ${APISIX_ADMIN_KEY}
+    volumes:
+      - ./apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+    ports:
+      - "9080:9080" # gerbang API (dipakai React)
+      - "9180:9180" # Admin API (dipakai skrip setup)
+    depends_on:
+      - etcd
+      - backend-1
+      - backend-2
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: library
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library -d library"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend-1:
+    build: ./backend
+    environment:
+      POD_NAME: "POD 1"
+      DATABASE_URL: postgres://library:${POSTGRES_PASSWORD}@postgres:5432/library
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: on-failure
+
+  backend-2:
+    build: ./backend
+    environment:
+      POD_NAME: "POD 2"
+      DATABASE_URL: postgres://library:${POSTGRES_PASSWORD}@postgres:5432/library
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: on-failure
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: library
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  etcddata:
+  pgdata:

@@ -1,0 +1,61 @@
+{
+  "realm": "library",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": true,
+  "defaultRole": {
+    "name": "default-roles-library",
+    "description": "${role_default-roles}",
+    "composite": true,
+    "composites": { "realm": ["offline_access", "uma_authorization", "member"] },
+    "clientRole": false
+  },
+  "roles": {
+    "realm": [
+      { "name": "offline_access" },
+      { "name": "uma_authorization" },
+      { "name": "member" },
+      { "name": "librarian" },
+      { "name": "admin" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "library-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:5173/*"],
+      "webOrigins": ["http://localhost:5173"],
+      "attributes": { "pkce.code.challenge.method": "S256" }
+    },
+    {
+      "clientId": "apisix",
+      "enabled": true,
+      "secret": "apisix-secret",
+      "publicClient": false,
+      "standardFlowEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "budi", "enabled": true, "emailVerified": true,
+      "firstName": "Budi", "lastName": "Santoso", "email": "budi@example.com",
+      "credentials": [{ "type": "password", "value": "budi123", "temporary": false }],
+      "realmRoles": ["member"]
+    },
+    {
+      "username": "sari", "enabled": true, "emailVerified": true,
+      "firstName": "Sari", "lastName": "Dewi", "email": "sari@example.com",
+      "credentials": [{ "type": "password", "value": "sari123", "temporary": false }],
+      "realmRoles": ["member", "librarian"]
+    },
+    {
+      "username": "admin1", "enabled": true, "emailVerified": true,
+      "firstName": "Admin", "lastName": "Satu", "email": "admin1@example.com",
+      "credentials": [{ "type": "password", "value": "admin123", "temporary": false }],
+      "realmRoles": ["member", "librarian", "admin"]
+    }
+  ]
+}
